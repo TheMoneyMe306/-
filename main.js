@@ -19,7 +19,8 @@ const chickenMenus = [
   { id: "kai-krathiam", num: 3, name: "ข้าวไก่กระเทียม", price: 45, img: "kai-krathiam.jpg" },
   { id: "kai-prikklua", num: 4, name: "ข้าวไก่คั่วพริกเกลือ", price: 45, img: "kai-khua-prik-klua.jpg" },
   { id: "kai-samunphrai", num: 5, name: "ข้าวไก่นึ่งสมุนไพร + น้ำจิ้มซีฟู้ด", price: 45, img: "kai-neung-samunphrai.jpg" },
-  { id: "kai-samunphrai-kap", num: 6, name: "ไก่นึ่งสมุนไพร (เป็นกับข้าว)", price: 50, img: "kai-neung-samunphrai.jpg", side: true, note: "ใช้รูปชั่วคราว" },
+  { id: "kai-samunphrai-kap", num: 6, name: "ไก่นึ่งสมุนไพร เป็นกับข้าว (ปีกไก่ 2 + น่องไก่ 1 ชิ้น)", price: 50, img: "kai-peek-nong-samunphrai.jpg", side: true },
+  { id: "kai-saphok-samunphrai", num: 11, name: "สะโพกไก่นึ่งสมุนไพร (ชิ้นโตๆ)", price: 40, img: "kai-saphok-samunphrai.jpg", side: true, tag: "ชิ้นละ 40.-" },
 ];
 
 const shrimpMenus = [
