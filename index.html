@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ครัวแม่ปุ้ง 🏡 สั่งได้เลย!</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="logo.png">
+</head>
+<body>
+
+<!-- ════ HEADER ════ -->
+<div class="header">
+  <img class="logo" src="logo.png" alt="ครัวแม่ปุ้ง">
+  <p class="header-sub">ข้าวหอมมะลิหอมนุ่ม <b>ทำสดใหม่ทุกออเดอร์</b> ส่งถึงบ้าน</p>
+</div>
+
+<!-- ════ PROMO BAR ════ -->
+<div class="promo-bar">
+  <div class="badge"><span>🍚</span><span>ข้าวหอมมะลิ หอมนุ่ม</span></div>
+  <div class="badge"><span>💯</span><span>ทำสดใหม่ทุกออเดอร์</span></div>
+  <div class="badge"><span>📦</span><span>เข้าไมโครเวฟได้</span></div>
+</div>
+
+<!-- ════ GOV PROMO BANNER ════ -->
+<div class="gov-banner">
+  <img src="gov-promo.jpg" alt="ไทยช่วยไทยพลัส 60/40" loading="lazy">
+  <div class="gov-banner-text">
+    <div class="gov-banner-title">✅ ร้านเข้าร่วมโครงการ "ไทยช่วยไทยพลัส 60/40"</div>
+    <div class="gov-banner-sub">ใช้แอปเป๋าตัง / ถุงเงินได้ • วงเงิน 1,000 บาท/คน/เดือน (รัฐสนับสนุน 60 ประชาชนร่วมจ่าย 40)</div>
+  </div>
+</div>
+
+<!-- ════ CART BAR ════ -->
+<div class="cart-bar">
+  <div class="cart-info">
+    <div class="cart-icon">🛒<span class="cart-count" id="cartCount">0</span></div>
+    <div class="cart-summary" id="cartSummary">ยังไม่มีรายการ</div>
+  </div>
+  <div class="cart-total" id="cartTotal">฿0</div>
+  <button class="btn-checkout" id="btnCheckout" onclick="openCart()" disabled>ดูตะกร้า</button>
+</div>
+
+<!-- ════ PRICE TABLE ════ -->
+<div class="section-title">📋 ตารางราคาทั้งหมด</div>
+<div class="price-table-wrap">
+  <table class="price-table">
+    <thead><tr><th>#</th><th>เมนู</th><th>ราคา</th></tr></thead>
+    <tbody id="priceTableBody"></tbody>
+    <tfoot><tr class="tfoot-row"><td colspan="3">🍚 ใช้ข้าวหอมมะลิ • 🚗 พร้อมส่งทุกออเดอร์</td></tr></tfoot>
+  </table>
+</div>
+
+<!-- ════ FEATURED (ข้าวคลุกกะปิ) ════ -->
+<div class="section-title">⭐ เมนูยอดฮิต</div>
+<div class="feature-wrap" id="featureWrap"></div>
+
+<!-- ════ PRODUCT GRIDS ════ -->
+<div class="section-title">🐔 เมนูข้าวหน้าไก่</div>
+<div class="container" style="padding-bottom:0;">
+  <div class="grid-cat" id="grid-chicken"></div>
+</div>
+<div class="section-title">🦐 เมนูข้าวหน้ากุ้ง</div>
+<div class="container">
+  <div class="grid-cat" id="grid-shrimp"></div>
+</div>
+
+<!-- ════ FOOTER ════ -->
+<div class="footer">
+  <div class="contact-row">
+    <span>🏠 <span id="footerAddress">[ใส่ที่อยู่จัดส่งของร้าน]</span></span>
+    <span>📞 <a id="footerPhone" href="#">[ใส่เบอร์โทรร้าน]</a></span>
+  </div>
+  <div>© 2026 ครัวแม่ปุ้ง | สั่งง่าย ส่งไว ถึงบ้านครับ</div>
+  <div class="footer-note">* กรุณาแก้ไขที่อยู่ เบอร์โทร และลิงก์ LINE OA ให้เป็นของร้านจริงก่อนเปิดใช้งาน</div>
+</div>
+
+<!-- ════ LINE FAB ════ -->
+<a class="line-fab" id="lineFab" href="#" target="_blank" title="ใส่ลิงก์ LINE OA ของร้านที่นี่">💬</a>
+
+<!-- ════ TOAST ════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ════ CART MODAL ════ -->
+<div class="modal-bg" id="modalBg" onclick="closeCartOutside(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-head-icon">🛒</div>
+        <div>
+          <h2>ตะกร้าสินค้า</h2>
+          <div class="modal-head-sub" id="modalHeadSub">กำลังโหลด...</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn-line" id="btnLine" onclick="sendToLine()">
+        <span>💬</span>
+        <span>
+          สั่งผ่าน LINE ทันที!
+          <span class="btn-line-sub">กดเพื่อส่งออเดอร์ไปหาร้าน</span>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
