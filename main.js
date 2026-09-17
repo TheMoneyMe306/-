@@ -51,7 +51,8 @@ document.getElementById("lineFab").addEventListener("click", function (e) {
 function buildPriceRow(m) {
   return `<tr><td class="num-col">${m.num}</td><td>${m.name}${m.side ? ' <span style="color:var(--muted);font-size:11px;">(ไม่รวมข้าว)</span>' : ""}</td><td class="price-col">${m.price} บาท</td></tr>`;
 }
-document.getElementById("priceTableBody").innerHTML = allMenus.map(buildPriceRow).join("");
+const priceTableSorted = [...allMenus].sort((a, b) => a.price - b.price);
+document.getElementById("priceTableBody").innerHTML = priceTableSorted.map(buildPriceRow).join("");
 
 /* ── Feature card (ข้าวคลุกกะปิ) ── */
 function buildFeatureCard(m) {
@@ -103,8 +104,10 @@ function buildCard(m) {
   </div>`;
 }
 
-document.getElementById("grid-chicken").innerHTML = chickenMenus.map(m => buildCard(m)).join("");
-document.getElementById("grid-shrimp").innerHTML = shrimpMenus.map(m => buildCard(m)).join("");
+const chickenSorted = [...chickenMenus].sort((a, b) => a.price - b.price);
+const shrimpSorted = [...shrimpMenus].sort((a, b) => a.price - b.price);
+document.getElementById("grid-chicken").innerHTML = chickenSorted.map(m => buildCard(m)).join("");
+document.getElementById("grid-shrimp").innerHTML = shrimpSorted.map(m => buildCard(m)).join("");
 
 /* ── Quantity controls ── */
 function chgQty(id, d) {
