@@ -28,6 +28,8 @@ const shrimpMenus = [
   { id: "kung-muk-kari", num: 8, name: "ข้าวกุ้ง+หมึกผัดผงกะหรี่", price: 50, img: "kung-phad-phong-kari.jpg", note: "ใช้รูปชั่วคราว" },
   { id: "kung-prikklua", num: 9, name: "ข้าวกุ้งคั่วพริกเกลือ", price: 50, img: "kung-khua-prik-klua.jpg" },
   { id: "kung-krathiam", num: 10, name: "ข้าวกุ้งกระเทียม", price: 50, img: "kung-krathiam.jpg" },
+  { id: "muk-krathiam", num: 12, name: "ข้าวหมึกกระเทียม", price: 50, img: "muk-krathiam.jpg", tag: "🆕 เมนูใหม่" },
+  { id: "muk-kari", num: 13, name: "ข้าวหมึกผัดผงกะหรี่", price: 50, img: "muk-phad-phong-kari.jpg", tag: "🆕 เมนูใหม่" },
 ];
 
 const allMenus = [feature, ...chickenMenus, ...shrimpMenus];
