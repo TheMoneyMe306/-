@@ -40,7 +40,7 @@ let globalSpice = "เผ็ดปกติ";
 let globalVeg = "🥬 ใส่ผักสด";
 
 /* ── ลิงก์เพิ่มเพื่อน LINE OA — ใส่ลิงก์ของร้านครัวแม่ปุ้งตรงนี้ ── */
-const LINE_OA_LINK = "https://line.me/R/ti/p/@939cbtmd";
+const LINE_OA_LINK = "https://line.me/R/ti/p/@pijittra1309";
 
 function connectLine() {
   if (LINE_OA_LINK === "#") { showToast("⚠️ ยังไม่ได้ตั้งค่าลิงก์ LINE OA ของร้าน"); return; }
