@@ -19,7 +19,7 @@
  * ═══════════════════════════════════════════════════════════
  */
 
-const CHANNEL_ACCESS_TOKEN = 'PUT_YOUR_MAE_PUENG_LINE_CHANNEL_ACCESS_TOKEN_HERE'; // จาก LINE Developers Console > Messaging API > Channel access token
+const CHANNEL_ACCESS_TOKEN = 'oeKo0zBd4Re1cL9yoEI5QvaOg4BrrWrlF7Uc0PJJ1OIPCku/ibm2KdC3VFcLTOa8hRuryG/E2XM4T9jvL7ZN0Ux5nC+YE8thInFa84xbXAxwukvf39Mc/8gGtE2xBUDp5qP/0DwO/b3hW2dx/PALpwdB04t89/1O/w1cDnyilFU='; // จาก LINE Developers Console > Messaging API > Channel access token
 const SHEET_NAME = 'Orders';
 
 /* ── รับข้อมูลเข้ามาทาง POST (ทั้งจากเว็บไซต์ และจาก LINE Webhook) ── */

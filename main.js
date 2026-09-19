@@ -314,7 +314,7 @@ function genOrderId() {
 /* ── ตั้งค่า Apps Script Web App URL ──
    ยังไม่ได้ตั้งค่า! ให้ deploy Google Apps Script ของร้านครัวแม่ปุ้งเอง (ดูวิธีใน AppsScript_Code.gs)
    แล้วนำ URL ที่ได้มาแทนที่ค่าด้านล่างนี้ ── */
-const APPS_SCRIPT_URL = "PUT_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtxFw2Yjc3PdZypT0haKLz6DR8EGMbM7Hz-5hjNq5REBgy9Nan2GzqtCMA7pMDjoXq/exec";
 
 /* ── ส่งออเดอร์ ── */
 async function sendToLine() {
