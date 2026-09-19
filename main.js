@@ -20,7 +20,7 @@ const chickenMenus = [
   { id: "kai-prikklua", num: 4, name: "ข้าวไก่คั่วพริกเกลือ", price: 45, img: "kai-khua-prik-klua.jpg" },
   { id: "kai-samunphrai", num: 5, name: "ข้าวไก่นึ่งสมุนไพร + น้ำจิ้มซีฟู้ด", price: 45, img: "kai-neung-samunphrai.jpg" },
   { id: "kai-samunphrai-kap", num: 6, name: "ไก่นึ่งสมุนไพร เป็นกับข้าว (ปีกไก่ 2 + น่องไก่ 1 ชิ้น)", price: 50, img: "kai-peek-nong-samunphrai.png", side: true },
-  { id: "kai-saphok-samunphrai", num: 1, name: "สะโพกไก่นึ่งสมุนไพร (ชิ้นโตๆ)", price: 40, img: "kai-saphok-samunphrai.png", side: true, tag: "ชิ้นละ 40.-" },
+  { id: "kai-saphok-samunphrai", num: 11, name: "สะโพกไก่นึ่งสมุนไพร (ชิ้นโตๆ)", price: 40, img: "kai-saphok-samunphrai.png", side: true, tag: "ชิ้นละ 40.-" },
 ];
 
 const shrimpMenus = [
@@ -54,7 +54,7 @@ document.getElementById("lineFab").addEventListener("click", function (e) {
 function buildPriceRow(m) {
   return `<tr><td class="num-col">${m.num}</td><td>${m.name}${m.side ? ' <span style="color:var(--muted);font-size:11px;">(ไม่รวมข้าว)</span>' : ""}</td><td class="price-col">${m.price} บาท</td></tr>`;
 }
-const priceTableSorted = [...allMenus].sort((a, b) => a.price - b.price);
+const priceTableSorted = [...allMenus].sort((a, b) => a.num - b.num);
 document.getElementById("priceTableBody").innerHTML = priceTableSorted.map(buildPriceRow).join("");
 
 /* ── Feature card (ข้าวคลุกกะปิ) ── */
@@ -107,8 +107,8 @@ function buildCard(m) {
   </div>`;
 }
 
-const chickenSorted = [...chickenMenus].sort((a, b) => a.price - b.price);
-const shrimpSorted = [...shrimpMenus].sort((a, b) => a.price - b.price);
+const chickenSorted = [...chickenMenus].sort((a, b) => a.num - b.num);
+const shrimpSorted = [...shrimpMenus].sort((a, b) => a.num - b.num);
 document.getElementById("grid-chicken").innerHTML = chickenSorted.map(m => buildCard(m)).join("");
 document.getElementById("grid-shrimp").innerHTML = shrimpSorted.map(m => buildCard(m)).join("");
 
