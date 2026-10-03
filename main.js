@@ -27,7 +27,7 @@ const MENU_CACHE_KEY = "mp_menu_cache_v1";
 
 let cart = [];
 let globalSpice = "เผ็ดปกติ";
-let globalVeg = "🥬 ใส่ผักสด";
+let globalVeg = "🥬 ใส่ผัก";
 
 /* ── ลิงก์เพิ่มเพื่อน LINE OA — ใส่ลิงก์ของร้านครัวแม่ปุ้งตรงนี้ ── */
 const LINE_OA_LINK = "https://line.me/R/ti/p/@939cbtmd";
@@ -163,7 +163,7 @@ function syncCartWithMenus() {
   if (cart.length < before) showToast("⚠️ มีบางเมนูหมดแล้ว ระบบเอาออกจากตะกร้าให้");
 }
 
-/* ── โหลดเมนูจากชีต (แสดงแคช/สำรองทันที แล้วอัปเดตเมื่อได้ข้อมูลใหม่) ── */
+/* ── โหลดเมนูจากชีต (แงแคช/สำรองทันที แล้วอัปเดตเมื่อได้ข้อมูลใหม่) ── */
 let lastMenuJson = "";
 
 function showInitialMenus() {
@@ -191,7 +191,7 @@ async function loadMenus() {
     try { localStorage.setItem(MENU_CACHE_KEY, json); } catch (e) { /* ข้าม */ }
     syncCartWithMenus();
   } catch (err) {
-    console.warn("โหลดเมนูจากชีตไม่สำเร็จ ใช้เมนูที่แสดงอยู่ต่อไป:", err);
+    console.warn("โหลดเมนูจากชีตไม่สำเร็จ ใช้เมนูที่แงอยู่ต่อไป:", err);
   } finally {
     clearTimeout(timer);
   }
@@ -216,7 +216,7 @@ function addToCart(id) {
   const qty = parseInt(document.getElementById("qty_" + id).textContent);
   const ex = cart.find(c => c.id === id);
   if (ex) { ex.qty += qty; }
-  else { cart.push({ id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผักสด", qty, img: m.img }); }
+  else { cart.push({ id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผัก", qty, img: m.img }); }
   updateCartBar();
   flashBtn(id);
   showToast("✅ เพิ่ม " + m.name + " x" + qty + " แล้ว!");
@@ -258,7 +258,7 @@ function closeCart() {
   if (isOrderSuccess) {
     isOrderSuccess = false;
     const btnLine = document.getElementById("btnLine");
-    cart = []; globalSpice = "เผ็ดปกติ"; globalVeg = "🥬 ใส่ผักสด";
+    cart = []; globalSpice = "เผ็ดปกติ"; globalVeg = "🥬 ใส่ผัก";
     btnLine.disabled = false;
     btnLine.innerHTML = `<span>💬</span><span>สั่งผ่าน LINE ทันที!<span class="btn-line-sub">กดเพื่อส่งออเดอร์ไปหาร้าน</span></span>`;
     btnLine.style.display = "";
@@ -334,8 +334,8 @@ function renderModal() {
       <div class="msi-row" style="margin-top:10px">
         <div class="msi-label">ผัก</div>
         <div class="veg-options">
-          <label class="veg-opt"><input type="radio" name="gveg" value="🥬 ใส่ผักสด" ${globalVeg === "🥬 ใส่ผักสด" ? "checked" : ""} onchange="globalVeg=this.value"><span>🥬 ใส่ผักสด</span></label>
-          <label class="veg-opt"><input type="radio" name="gveg" value="🚫 ไม่ใส่ผักสด" ${globalVeg === "🚫 ไม่ใส่ผักสด" ? "checked" : ""} onchange="globalVeg=this.value"><span>🚫 ไม่ใส่ผักสด</span></label>
+          <label class="veg-opt"><input type="radio" name="gveg" value="🥬 ใส่ผัก" ${globalVeg === "🥬 ใส่ผัก" ? "checked" : ""} onchange="globalVeg=this.value"><span>🥬 ใส่ผัก</span></label>
+          <label class="veg-opt"><input type="radio" name="gveg" value="🚫 ไม่ใส่ผัก" ${globalVeg === "🚫 ไม่ใส่ผัก" ? "checked" : ""} onchange="globalVeg=this.value"><span>🚫 ไม่ใส่ผัก</span></label>
         </div>
       </div>
       <div class="msi-note">✅ ใช้กับทุกเมนูในออเดอร์นี้</div>
