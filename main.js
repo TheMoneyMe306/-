@@ -110,6 +110,12 @@ function buildCard(m) {
   </div>`;
 }
 
+/* ── ชื่อหัวข้อของหมวดใหม่ (ค่าในคอลัมน์ category ของชีต) ──
+   หมวดที่ไม่อยู่ในรายการนี้ ระบบจะใช้ข้อความจากชีตเป็นหัวข้อให้เลย */
+const CATEGORY_TITLES = {
+  pig: "🐷 เมนูข้าวขาหมู",
+};
+
 /* ── วาดเมนูทั้งหมดจากรายการที่ได้รับ ── */
 function renderMenus(list) {
   MENUS = list.map(m => Object.assign({ tag: "", desc: "", side: false, available: true }, m));
@@ -124,6 +130,27 @@ function renderMenus(list) {
   document.getElementById("featureWrap").innerHTML = featureItem ? buildFeatureCard(featureItem) : "";
   document.getElementById("grid-chicken").innerHTML = chicken.map(buildCard).join("");
   document.getElementById("grid-shrimp").innerHTML = shrimp.map(buildCard).join("");
+
+  /* หมวดอื่นที่เพิ่มในชีต (เช่น pig) → สร้างหัวข้อ + ตารางการ์ดต่อท้ายให้อัตโนมัติ */
+  const known = ["featured", "chicken", "shrimp"];
+  const extraCats = [];
+  MENUS.forEach(m => {
+    if (m.category && !known.includes(m.category) && !extraCats.includes(m.category)) extraCats.push(m.category);
+  });
+
+  document.querySelectorAll("[data-extra-cat]").forEach(el => el.remove());
+  const shrimpBox = document.getElementById("grid-shrimp").parentElement;
+  shrimpBox.style.paddingBottom = extraCats.length ? "0" : "";
+  let anchor = shrimpBox;
+  extraCats.forEach((cat, i) => {
+    const items = MENUS.filter(m => m.category === cat).sort(byPrice);
+    const title = CATEGORY_TITLES[cat] || ("🍽️ " + cat);
+    const lastStyle = i < extraCats.length - 1 ? ' style="padding-bottom:0;"' : "";
+    anchor.insertAdjacentHTML("afterend",
+      `<div class="section-title" data-extra-cat="${esc(cat)}">${esc(title)}</div>` +
+      `<div class="container" data-extra-cat="${esc(cat)}"${lastStyle}><div class="grid-cat">${items.map(buildCard).join("")}</div></div>`);
+    anchor = anchor.nextElementSibling.nextElementSibling;
+  });
 }
 
 /* ── ตะกร้าที่ค้างอยู่: ถ้าเมนูหมด/ราคาเปลี่ยน ให้ปรับตาม ── */
