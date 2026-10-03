@@ -1,39 +1,29 @@
 /* ════════════════════════════════════════════════════
    ครัวแม่ปุ้ง — เมนูและราคา
-   * ราคาทั้งหมดยืนยันแล้วจากเจ้าของร้าน (ก.ย. 2569)
-   * รายการที่มีหมายเหตุ "ใช้รูปชั่วคราว" ยังไม่มีรูปเมนูจริง
-     ให้เปลี่ยนไฟล์รูปทีหลังเมื่อมีรูปจริง
+   * ข้อมูลเมนูจริงดึงมาจากชีต "Menu" ใน Google Sheets (ผ่าน Apps Script)
+   * ก้อนด้านล่างนี้เป็นเมนูสำรอง ใช้เฉพาะตอนโหลดจากชีตไม่ได้และยังไม่มีแคช
+   * ถ้าจะแก้เมนู ให้แก้ในชีต ไม่ต้องแก้ตรงนี้
    ════════════════════════════════════════════════════ */
 
-const feature = {
-  id: "khluk-kapi",
-  num: 1,
-  name: "ข้าวคลุกกะปิ",
-  price: 50,
-  img: "khao-khluk-kapi.jpg",
-  desc: "หอมกะปิ เครื่องแน่นจัดเต็มในกล่องเดียว มะม่วงดิบ แตงกวา ไข่เจียว หมูหวาน กุนเชียง กุ้งแห้ง พริกสด หอมแดง"
-};
-
-const chickenMenus = [
-  { id: "kai-yang", num: 2, name: "ข้าวไก่ย่างคลุกฝุ่น + น้ำจิ้มแจ่ว", price: 45, img: "kai-yang-klukfun.jpg", tag: "🔥 น้ำจิ้มแซ่บ" },
-  { id: "kai-krathiam", num: 3, name: "ข้าวไก่กระเทียม", price: 45, img: "kai-krathiam.jpg" },
-  { id: "kai-prikklua", num: 4, name: "ข้าวไก่คั่วพริกเกลือ", price: 45, img: "kai-khua-prik-klua.jpg" },
-  { id: "kai-samunphrai", num: 5, name: "ข้าวไก่นึ่งสมุนไพร + น้ำจิ้มซีฟู้ด", price: 45, img: "kai-neung-samunphrai.jpg" },
-  { id: "kai-samunphrai-kap", num: 6, name: "ไก่นึ่งสมุนไพร เป็นกับข้าว (ปีกไก่ 2 + น่องไก่ 1 ชิ้น)", price: 50, img: "kai-peek-nong-samunphrai.png", side: true },
-  { id: "kai-saphok-samunphrai", num: 11, name: "สะโพกไก่นึ่งสมุนไพร (ชิ้นโตๆ)", price: 40, img: "kai-saphok-samunphrai.png", side: true, tag: "ชิ้นละ 40.-" },
+const FALLBACK_MENUS = [
+  { id: "khluk-kapi", num: 1, name: "ข้าวคลุกกะปิ", price: 50, category: "featured", img: "khao-khluk-kapi.jpg", desc: "หอมกะปิ เครื่องแน่นจัดเต็มในกล่องเดียว มะม่วงดิบ แตงกวา ไข่เจียว หมูหวาน กุนเชียง กุ้งแห้ง พริกสด หอมแดง" },
+  { id: "kai-yang", num: 2, name: "ข้าวไก่ย่างคลุกฝุ่น + น้ำจิ้มแจ่ว", price: 45, category: "chicken", img: "kai-yang-klukfun.jpg", tag: "🔥 น้ำจิ้มแซ่บ" },
+  { id: "kai-krathiam", num: 3, name: "ข้าวไก่กระเทียม", price: 45, category: "chicken", img: "kai-krathiam.jpg" },
+  { id: "kai-prikklua", num: 4, name: "ข้าวไก่คั่วพริกเกลือ", price: 45, category: "chicken", img: "kai-khua-prik-klua.jpg" },
+  { id: "kai-samunphrai", num: 5, name: "ข้าวไก่นึ่งสมุนไพร + น้ำจิ้มซีฟู้ด", price: 45, category: "chicken", img: "kai-neung-samunphrai.jpg" },
+  { id: "kai-samunphrai-kap", num: 6, name: "ไก่นึ่งสมุนไพร เป็นกับข้าว (ปีกไก่ 2 + น่องไก่ 1 ชิ้น)", price: 50, category: "chicken", img: "kai-peek-nong-samunphrai.png", side: true },
+  { id: "kai-saphok-samunphrai", num: 11, name: "สะโพกไก่นึ่งสมุนไพร (ชิ้นโตๆ)", price: 40, category: "chicken", img: "kai-saphok-samunphrai.png", side: true, tag: "ชิ้นละ 40.-" },
+  { id: "kung-kari", num: 7, name: "ข้าวกุ้งผัดผงกะหรี่", price: 50, category: "shrimp", img: "kung-phad-phong-kari.jpg" },
+  { id: "kung-muk-kari", num: 8, name: "ข้าวกุ้ง+หมึกผัดผงกะหรี่", price: 50, category: "shrimp", img: "kung-phad-phong-kari.jpg" },
+  { id: "kung-prikklua", num: 9, name: "ข้าวกุ้งคั่วพริกเกลือ", price: 50, category: "shrimp", img: "kung-khua-prik-klua.jpg" },
+  { id: "kung-krathiam", num: 10, name: "ข้าวกุ้งกระเทียม", price: 50, category: "shrimp", img: "kung-krathiam.jpg" },
+  { id: "muk-krathiam", num: 12, name: "ข้าวหมึกกระเทียม", price: 50, category: "shrimp", img: "muk-krathiam.jpg", tag: "🆕 เมนูใหม่" },
+  { id: "muk-kari", num: 13, name: "ข้าวหมึกผัดผงกะหรี่", price: 50, category: "shrimp", img: "muk-phad-phong-kari.jpg", tag: "🆕 เมนูใหม่" },
 ];
 
-const shrimpMenus = [
-  { id: "kung-kari", num: 7, name: "ข้าวกุ้งผัดผงกะหรี่", price: 50, img: "kung-phad-phong-kari.jpg" },
-  { id: "kung-muk-kari", num: 8, name: "ข้าวกุ้ง+หมึกผัดผงกะหรี่", price: 50, img: "kung-phad-phong-kari.jpg", note: "ใช้รูปชั่วคราว" },
-  { id: "kung-prikklua", num: 9, name: "ข้าวกุ้งคั่วพริกเกลือ", price: 50, img: "kung-khua-prik-klua.jpg" },
-  { id: "kung-krathiam", num: 10, name: "ข้าวกุ้งกระเทียม", price: 50, img: "kung-krathiam.jpg" },
-  { id: "muk-krathiam", num: 12, name: "ข้าวหมึกกระเทียม", price: 50, img: "muk-krathiam.jpg", tag: "🆕 เมนูใหม่" },
-  { id: "muk-kari", num: 13, name: "ข้าวหมึกผัดผงกะหรี่", price: 50, img: "muk-phad-phong-kari.jpg", tag: "🆕 เมนูใหม่" },
-];
-
-const allMenus = [feature, ...chickenMenus, ...shrimpMenus];
-const IMG = Object.fromEntries(allMenus.map(m => [m.id, m.img]));
+let MENUS = [];          // เมนูที่กำลังแสดงอยู่ (มาจากชีต / แคช / สำรอง)
+let IMG = {};
+const MENU_CACHE_KEY = "mp_menu_cache_v1";
 
 let cart = [];
 let globalSpice = "เผ็ดปกติ";
@@ -50,67 +40,136 @@ document.getElementById("lineFab").addEventListener("click", function (e) {
   if (LINE_OA_LINK === "#") { e.preventDefault(); showToast("⚠️ ยังไม่ได้ตั้งค่าลิงก์ LINE OA ของร้าน"); }
 });
 
+/* ── ป้องกันตัวอักษรพิเศษจากชีตทำให้ HTML พัง ── */
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
 /* ── Price table ── */
 function buildPriceRow(m) {
-  return `<tr><td class="num-col">${m.num}</td><td>${m.name}${m.side ? ' <span style="color:var(--muted);font-size:11px;">(ไม่รวมข้าว)</span>' : ""}</td><td class="price-col">${m.price} บาท</td></tr>`;
+  const sideNote = m.side ? ' <span style="color:var(--muted);font-size:11px;">(ไม่รวมข้าว)</span>' : "";
+  const priceCell = m.available ? `${m.price} บาท` : "หมด";
+  return `<tr class="${m.available ? "" : "soldout"}"><td class="num-col">${m.num}</td><td>${esc(m.name)}${sideNote}</td><td class="price-col">${priceCell}</td></tr>`;
 }
-const priceTableSorted = [...allMenus].sort((a, b) => a.num - b.num);
-document.getElementById("priceTableBody").innerHTML = priceTableSorted.map(buildPriceRow).join("");
 
-/* ── Feature card (ข้าวคลุกกะปิ) ── */
+/* ── Feature card (เมนูยอดฮิต) ── */
 function buildFeatureCard(m) {
-  return `<div class="feature-card">
-    <div class="feature-img-wrap">
-      <img src="${m.img}" alt="${m.name}" loading="lazy">
-      <div class="feature-ribbon">เมนูยอดฮิต</div>
-      <div class="feature-stamp"><b>${m.price}</b><span>บาท</span></div>
-    </div>
-    <div class="feature-body">
-      <h3>${m.name}</h3>
-      <p>${m.desc}</p>
-      <div class="qty-row">
+  const soldTag = m.available ? "" : `<div class="soldout-tag">หมด</div>`;
+  const action = m.available
+    ? `<div class="qty-row">
         <label>จำนวน</label>
         <div class="qty-ctrl">
-          <button class="qty-btn" onclick="chgQty('qty_${m.id}',-1)">−</button>
-          <span class="qty-num" id="qty_${m.id}">1</span>
-          <button class="qty-btn" onclick="chgQty('qty_${m.id}',1)">+</button>
+          <button class="qty-btn" onclick="chgQty('qty_${esc(m.id)}',-1)">−</button>
+          <span class="qty-num" id="qty_${esc(m.id)}">1</span>
+          <button class="qty-btn" onclick="chgQty('qty_${esc(m.id)}',1)">+</button>
         </div>
       </div>
-      <button class="btn-add" id="btn_${m.id}" onclick="addToCart('${m.id}','${m.name}',${m.price})">+ เพิ่มลงตะกร้า</button>
+      <button class="btn-add" id="btn_${esc(m.id)}" onclick="addToCart('${esc(m.id)}')">+ เพิ่มลงตะกร้า</button>`
+    : `<button class="btn-add" id="btn_${esc(m.id)}" disabled>หมดชั่วคราว</button>`;
+  return `<div class="feature-card ${m.available ? "" : "soldout"}">
+    <div class="feature-img-wrap">
+      <img src="${esc(m.img)}" alt="${esc(m.name)}" loading="lazy">
+      <div class="feature-ribbon">เมนูยอดฮิต</div>
+      <div class="feature-stamp"><b>${m.price}</b><span>บาท</span></div>
+      ${soldTag}
+    </div>
+    <div class="feature-body">
+      <h3>${esc(m.name)}</h3>
+      <p>${esc(m.desc)}</p>
+      ${action}
     </div>
   </div>`;
 }
-document.getElementById("featureWrap").innerHTML = buildFeatureCard(feature);
 
 /* ── Build product card ── */
 function buildCard(m) {
-  const best = m.tag ? `<div class="best-tag">${m.tag}</div>` : "";
+  const best = m.tag ? `<div class="best-tag">${esc(m.tag)}</div>` : "";
   const side = m.side ? `<div class="side-tag">ไม่รวมข้าว</div>` : "";
-  return `<div class="card">
-    <div class="card-img-wrap">
-      <img src="${m.img}" alt="${m.name}" loading="lazy">
-      ${best}${side}
-    </div>
-    <div class="card-body">
-      <h3>${m.name}</h3>
-      <div class="card-price">${m.price} บาท</div>
-      <div class="qty-row">
+  const soldTag = m.available ? "" : `<div class="soldout-tag">หมด</div>`;
+  const action = m.available
+    ? `<div class="qty-row">
         <label>จำนวน</label>
         <div class="qty-ctrl">
-          <button class="qty-btn" onclick="chgQty('qty_${m.id}',-1)">−</button>
-          <span class="qty-num" id="qty_${m.id}">1</span>
-          <button class="qty-btn" onclick="chgQty('qty_${m.id}',1)">+</button>
+          <button class="qty-btn" onclick="chgQty('qty_${esc(m.id)}',-1)">−</button>
+          <span class="qty-num" id="qty_${esc(m.id)}">1</span>
+          <button class="qty-btn" onclick="chgQty('qty_${esc(m.id)}',1)">+</button>
         </div>
       </div>
-      <button class="btn-add" id="btn_${m.id}" onclick="addToCart('${m.id}','${m.name}',${m.price})">+ เพิ่มลงตะกร้า</button>
+      <button class="btn-add" id="btn_${esc(m.id)}" onclick="addToCart('${esc(m.id)}')">+ เพิ่มลงตะกร้า</button>`
+    : `<button class="btn-add" id="btn_${esc(m.id)}" disabled style="margin-top:10px;">หมดชั่วคราว</button>`;
+  return `<div class="card ${m.available ? "" : "soldout"}">
+    <div class="card-img-wrap">
+      <img src="${esc(m.img)}" alt="${esc(m.name)}" loading="lazy">
+      ${best}${side}${soldTag}
+    </div>
+    <div class="card-body">
+      <h3>${esc(m.name)}</h3>
+      <div class="card-price">${m.price} บาท</div>
+      ${action}
     </div>
   </div>`;
 }
 
-const chickenSorted = [...chickenMenus].sort((a, b) => a.price - b.price);
-const shrimpSorted = [...shrimpMenus].sort((a, b) => a.price - b.price);
-document.getElementById("grid-chicken").innerHTML = chickenSorted.map(m => buildCard(m)).join("");
-document.getElementById("grid-shrimp").innerHTML = shrimpSorted.map(m => buildCard(m)).join("");
+/* ── วาดเมนูทั้งหมดจากรายการที่ได้รับ ── */
+function renderMenus(list) {
+  MENUS = list.map(m => Object.assign({ tag: "", desc: "", side: false, available: true }, m));
+  IMG = Object.fromEntries(MENUS.map(m => [m.id, m.img]));
+
+  const byPrice = (a, b) => (a.price - b.price) || (a.num - b.num);
+  const featureItem = MENUS.find(m => m.category === "featured");
+  const chicken = MENUS.filter(m => m.category === "chicken").sort(byPrice);
+  const shrimp = MENUS.filter(m => m.category === "shrimp").sort(byPrice);
+
+  document.getElementById("priceTableBody").innerHTML = [...MENUS].sort(byPrice).map(buildPriceRow).join("");
+  document.getElementById("featureWrap").innerHTML = featureItem ? buildFeatureCard(featureItem) : "";
+  document.getElementById("grid-chicken").innerHTML = chicken.map(buildCard).join("");
+  document.getElementById("grid-shrimp").innerHTML = shrimp.map(buildCard).join("");
+}
+
+/* ── ตะกร้าที่ค้างอยู่: ถ้าเมนูหมด/ราคาเปลี่ยน ให้ปรับตาม ── */
+function syncCartWithMenus() {
+  if (cart.length === 0) return;
+  const before = cart.length;
+  cart = cart.filter(c => { const m = MENUS.find(x => x.id === c.id); return m && m.available; });
+  cart.forEach(c => { const m = MENUS.find(x => x.id === c.id); c.price = m.price; c.name = m.name; });
+  updateCartBar();
+  if (cart.length < before) showToast("⚠️ มีบางเมนูหมดแล้ว ระบบเอาออกจากตะกร้าให้");
+}
+
+/* ── โหลดเมนูจากชีต (แสดงแคช/สำรองทันที แล้วอัปเดตเมื่อได้ข้อมูลใหม่) ── */
+let lastMenuJson = "";
+
+function showInitialMenus() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(MENU_CACHE_KEY) || "null");
+    if (Array.isArray(cached) && cached.length) { renderMenus(cached); lastMenuJson = JSON.stringify(cached); return; }
+  } catch (e) { /* ไม่มีแคชก็ข้าม */ }
+  renderMenus(FALLBACK_MENUS);
+}
+
+async function loadMenus() {
+  if (APPS_SCRIPT_URL === "PUT_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE") return;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { signal: ctrl.signal, cache: "no-store" });
+    const data = await res.json();
+    if (data.status !== "ok" || !Array.isArray(data.menus) || data.menus.length === 0) {
+      throw new Error(data.message || "ได้รายการเมนูว่างเปล่า");
+    }
+    const json = JSON.stringify(data.menus);
+    if (json === lastMenuJson) return;     // ไม่มีอะไรเปลี่ยน ไม่ต้องวาดใหม่
+    renderMenus(data.menus);
+    lastMenuJson = json;
+    try { localStorage.setItem(MENU_CACHE_KEY, json); } catch (e) { /* ข้าม */ }
+    syncCartWithMenus();
+  } catch (err) {
+    console.warn("โหลดเมนูจากชีตไม่สำเร็จ ใช้เมนูที่แสดงอยู่ต่อไป:", err);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 
 /* ── Quantity controls ── */
 function chgQty(id, d) {
@@ -123,16 +182,19 @@ function handleSpiceChange(el) {
   globalSpice = el.value;
 }
 
-/* ── Add to cart ── */
-function addToCart(id, name, price) {
+/* ── Add to cart (ดึงชื่อ/ราคาจากรายการเมนู ไม่รับจาก HTML) ── */
+function addToCart(id) {
+  const m = MENUS.find(x => x.id === id);
+  if (!m || !m.available) { showToast("⚠️ เมนูนี้หมดแล้วครับ"); return; }
   const qty = parseInt(document.getElementById("qty_" + id).textContent);
   const ex = cart.find(c => c.id === id);
   if (ex) { ex.qty += qty; }
-  else { cart.push({ id, name, price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผักสด", qty, img: IMG[id] }); }
+  else { cart.push({ id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผักสด", qty, img: m.img }); }
   updateCartBar();
   flashBtn(id);
-  showToast("✅ เพิ่ม " + name + " x" + qty + " แล้ว!");
+  showToast("✅ เพิ่ม " + m.name + " x" + qty + " แล้ว!");
 }
+
 
 function flashBtn(id) {
   const b = document.getElementById("btn_" + id);
@@ -314,7 +376,7 @@ function genOrderId() {
 /* ── ตั้งค่า Apps Script Web App URL ──
    ยังไม่ได้ตั้งค่า! ให้ deploy Google Apps Script ของร้านครัวแม่ปุ้งเอง (ดูวิธีใน AppsScript_Code.gs)
    แล้วนำ URL ที่ได้มาแทนที่ค่าด้านล่างนี้ ── */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtxFw2Yjc3PdZypT0haKLz6DR8EGMbM7Hz-5hjNq5REBgy9Nan2GzqtCMA7pMDjoXq/exec";
+const APPS_SCRIPT_URL = "PUT_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
 /* ── ส่งออเดอร์ ── */
 async function sendToLine() {
@@ -429,3 +491,7 @@ function showToast(msg) {
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2500);
 }
+
+/* ── เริ่มทำงาน: แสดงเมนูทันที แล้วดึงข้อมูลล่าสุดจากชีต ── */
+showInitialMenus();
+loadMenus();

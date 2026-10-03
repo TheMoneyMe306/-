@@ -215,3 +215,10 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
 .success-countdown{font-size:12px;color:var(--turmeric);font-weight:700;background:rgba(232,172,62,0.1);border:1px solid rgba(232,172,62,0.2);border-radius:20px;padding:5px 14px;margin-bottom:10px;}
 
 @media(max-width:600px){.grid-cat{grid-template-columns:repeat(2,1fr);}.cart-summary{display:none;}.field-row{grid-template-columns:1fr;}.modal{border-radius:20px 20px 0 0;}}
+
+/* ── สินค้าหมด (เพิ่มสำหรับระบบเมนูจากชีต) ── */
+.card.soldout .card-img-wrap img,.feature-card.soldout .feature-img-wrap img{filter:grayscale(1);opacity:0.45;}
+.soldout-tag{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);background:var(--stamp);color:#fff;font-size:16px;font-weight:900;padding:6px 20px;border-radius:8px;border:2px solid #241608;z-index:3;letter-spacing:0.5px;}
+.btn-add:disabled{background:#3a2b1a;color:var(--muted);cursor:not-allowed;opacity:1;}
+.btn-add:disabled:hover,.btn-add:disabled:active{opacity:1;transform:none;}
+.price-table tr.soldout td{opacity:0.5;}
