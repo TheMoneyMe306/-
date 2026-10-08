@@ -268,6 +268,99 @@ function closeCart() {
 
 function closeCartOutside(e) { if (e.target === document.getElementById("modalBg")) closeCart(); }
 
+
+/* ── ช่องทางชำระเงิน: พร้อมเพย์ ── */
+const PROMPTPAY_ID = "0821088428";
+const PROMPTPAY_NAME = "น.ส.พิจิตรา แก้วคำแสน";
+const PROMPTPAY_DISPLAY = "082-108-8428";
+
+function crc16(str) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+/* สร้างข้อความ EMV QR ของ PromptPay (เบอร์โทร + ยอดเงิน) */
+function buildPromptPayPayload(phone, amount) {
+  const tlv = (id, val) => id + String(val.length).padStart(2, "0") + val;
+  const target = "0066" + phone.replace(/^0/, "");
+  const merchant = tlv("00", "A000000677010111") + tlv("01", target);
+  let p = tlv("00", "01") + tlv("01", amount > 0 ? "12" : "11") + tlv("29", merchant) + tlv("53", "764");
+  if (amount > 0) p += tlv("54", amount.toFixed(2));
+  p += tlv("58", "TH") + "6304";
+  return p + crc16(p);
+}
+
+function paymentHTML(total) {
+  return `
+  <div class="section-divider"><span>ช่องทางการชำระเงิน</span></div>
+  <div class="delivery-section pay-section">
+    <div class="ds-header">💳 โอนผ่านพร้อมเพย์ (PromptPay)</div>
+    <div class="ds-body pay-body">
+      <div class="pay-qr-box"><div id="ppQR"></div></div>
+      <div class="pay-amount">ยอดที่ต้องโอน <b>฿${total}</b></div>
+      <div class="pay-info">
+        <div class="pay-row"><span class="pay-label">พร้อมเพย์</span><span class="pay-val" id="ppNumber">${PROMPTPAY_DISPLAY}</span></div>
+        <div class="pay-row"><span class="pay-label">ชื่อบัญชี</span><span class="pay-val">${PROMPTPAY_NAME}</span></div>
+      </div>
+      <div class="pay-actions">
+        <button type="button" class="pay-btn" onclick="copyPromptPay()">📋 คัดลอกเลขพร้อมเพย์</button>
+        <button type="button" class="pay-btn" id="ppSaveBtn" onclick="saveQR()">💾 บันทึก QR</button>
+      </div>
+      <div class="pay-note">เปิดแอปธนาคาร สแกน QR นี้ หรือโอนเข้าเบอร์พร้อมเพย์ด้านบน<br>โอนแล้วส่งสลิปให้ร้านทาง LINE ได้เลยครับ</div>
+    </div>
+  </div>`;
+}
+
+function renderPromptPayQR(total) {
+  const box = document.getElementById("ppQR");
+  if (!box) return;
+  box.innerHTML = "";
+  if (typeof QRCode === "undefined") {
+    box.innerHTML = '<div class="pay-qr-fail">ไม่สามารถแสดง QR ได้<br>กรุณาโอนเข้าเบอร์พร้อมเพย์ด้านล่าง</div>';
+    const sb = document.getElementById("ppSaveBtn"); if (sb) sb.style.display = "none";
+    return;
+  }
+  new QRCode(box, {
+    text: buildPromptPayPayload(PROMPTPAY_ID, total),
+    width: 200, height: 200,
+    colorDark: "#000000", colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+function copyPromptPay() {
+  const done = () => showToast("✅ คัดลอกเลขพร้อมเพย์แล้ว");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(PROMPTPAY_ID).then(done, () => fallbackCopy(done));
+  } else fallbackCopy(done);
+}
+function fallbackCopy(done) {
+  const t = document.createElement("textarea");
+  t.value = PROMPTPAY_ID; document.body.appendChild(t); t.select();
+  try { document.execCommand("copy"); done(); } catch (e) { showToast("⚠️ คัดลอกไม่ได้ เลขพร้อมเพย์ " + PROMPTPAY_ID); }
+  document.body.removeChild(t);
+}
+
+/* บันทึก QR เป็นรูป (เผื่อลูกค้าใช้มือถือเครื่องเดียวกับที่เปิดเว็บ สแกนหน้าจอตัวเองไม่ได้) */
+function saveQR() {
+  const canvas = document.querySelector("#ppQR canvas");
+  if (!canvas) { showToast("⚠️ ยังไม่มี QR ให้บันทึก"); return; }
+  const pad = 20, size = canvas.width + pad * 2;
+  const out = document.createElement("canvas");
+  out.width = size; out.height = size;
+  const ctx = out.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, size, size);
+  ctx.drawImage(canvas, pad, pad);
+  const a = document.createElement("a");
+  a.href = out.toDataURL("image/png");
+  a.download = "promptpay-krua-mae-pung.png";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
 /* ── Render modal ── */
 function renderModal() {
   const count = totalCount();
@@ -367,7 +460,8 @@ function renderModal() {
     </div>
   </div>`;
 
-  body.innerHTML = itemsHTML + summaryHTML + spiceVegSectionHTML + formHTML;
+  body.innerHTML = itemsHTML + summaryHTML + spiceVegSectionHTML + formHTML + paymentHTML(total);
+  renderPromptPayQR(total);
   document.getElementById("fldHouseNo").addEventListener("input", function () {
     if (this.value.trim()) this.classList.remove("err");
   });
@@ -506,9 +600,12 @@ function showSuccess(order) {
     ${order.note ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;">📝 ${order.note}</div>` : ""}
   </div>
 
+  ${paymentHTML(order.total)}
+
   <div class="success-screen" style="padding-top:20px;padding-bottom:8px;min-height:auto;">
     <div class="success-countdown">กดปุ่ม ✕ ด้านบนเพื่อปิดหน้าต่างนี้ได้เลยครับ</div>
   </div>`;
+  renderPromptPayQR(order.total);
 }
 
 /* ── Toast notification ── */
