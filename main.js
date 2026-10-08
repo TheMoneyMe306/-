@@ -158,7 +158,7 @@ function syncCartWithMenus() {
   if (cart.length === 0) return;
   const before = cart.length;
   cart = cart.filter(c => { const m = MENUS.find(x => x.id === c.id); return m && m.available; });
-  cart.forEach(c => { const m = MENUS.find(x => x.id === c.id); c.price = m.price; c.name = m.name; });
+  cart.forEach(c => { const m = MENUS.find(x => x.id === c.id); c.price = m.price; c.name = m.name; c.side = !!m.side; });
   updateCartBar();
   if (cart.length < before) showToast("⚠️ มีบางเมนูหมดแล้ว ระบบเอาออกจากตะกร้าให้");
 }
@@ -198,6 +198,37 @@ async function loadMenus() {
 }
 
 
+/* ── ท็อปปิ้งเพิ่มเติม (ราคาต่อชิ้น) — แก้ราคา/เพิ่มรายการได้ตรงนี้ ──
+   รูปอยู่ไฟล์เดียวกับเว็บ (topping-*.jpg) */
+const TOPPINGS = [
+  { id: "kung",     name: "กุ้ง",     price: 10, img: "topping-kung.jpg" },
+  { id: "muk",      name: "ปลาหมึก",  price: 10, img: "topping-muk.jpg" },
+  { id: "khai-dao", name: "ไข่ดาว",   price: 10, img: "topping-khai-dao.jpg" },
+  { id: "khai-jiao",name: "ไข่เจียว", price: 10, img: "topping-khai-jiao.jpg" },
+];
+const TOPPING_MAX = 9;
+
+function toppingsTotal(c) {
+  return TOPPINGS.reduce((s, t) => s + t.price * ((c.toppings && c.toppings[t.id]) || 0), 0);
+}
+function toppingsText(c) {
+  return TOPPINGS.filter(t => c.toppings && c.toppings[t.id] > 0)
+    .map(t => "+" + t.name + (c.toppings[t.id] > 1 ? " x" + c.toppings[t.id] : "")).join(" ");
+}
+/* ชื่อที่ส่งเข้าชีต/LINE: ใส่ท็อปปิ้งต่อท้ายชื่อเมนู ร้านจะเห็นชัดโดยไม่ต้องแก้ Apps Script */
+function cartItemLabel(c) {
+  const t = toppingsText(c);
+  return t ? c.name + " (" + t + ")" : c.name;
+}
+function toppingChg(i, tid, d) {
+  const c = cart[i];
+  c.toppings = c.toppings || {};
+  c.toppings[tid] = Math.max(0, Math.min(TOPPING_MAX, (c.toppings[tid] || 0) + d));
+  updateCartBar();
+  renderModal();
+}
+function toppingToggle(i) { cart[i].tpOpen = !cart[i].tpOpen; renderModal(); }
+
 /* ── Quantity controls ── */
 function chgQty(id, d) {
   const el = document.getElementById(id);
@@ -216,7 +247,7 @@ function addToCart(id) {
   const qty = parseInt(document.getElementById("qty_" + id).textContent);
   const ex = cart.find(c => c.id === id);
   if (ex) { ex.qty += qty; }
-  else { cart.push({ id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผัก", qty, img: m.img }); }
+  else { cart.push({ id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผัก", qty, img: m.img, side: !!m.side, toppings: {}, tpOpen: false }); }
   updateCartBar();
   flashBtn(id);
   showToast("✅ เพิ่ม " + m.name + " x" + qty + " แล้ว!");
@@ -231,7 +262,7 @@ function flashBtn(id) {
 }
 
 /* ── Price calculations (ราคาต่อรายการ ไม่มีโปรพ่วง) ── */
-function itemTotal(c) { return c.price * c.qty; }
+function itemTotal(c) { return c.price * c.qty + toppingsTotal(c); }
 function cartGrandTotal() { return cart.reduce((s, c) => s + itemTotal(c), 0); }
 function totalCount() { return cart.reduce((s, c) => s + c.qty, 0); }
 
@@ -241,7 +272,7 @@ function updateCartBar() {
   const count = totalCount();
   document.getElementById("cartCount").textContent = count;
   document.getElementById("cartTotal").textContent = "฿" + total;
-  document.getElementById("cartSummary").textContent = count > 0 ? cart.map(c => c.name + " x" + c.qty).join(", ") : "ยังไม่มีรายการ";
+  document.getElementById("cartSummary").textContent = count > 0 ? cart.map(c => cartItemLabel(c) + " x" + c.qty).join(", ") : "ยังไม่มีรายการ";
   const btn = document.getElementById("btnCheckout");
   btn.disabled = count === 0;
   btn.textContent = count > 0 ? "ดูตะกร้า (" + count + ")" : "ดูตะกร้า";
@@ -311,6 +342,16 @@ function fallbackCopy(done) {
 
 /* ── Render modal ── */
 function renderModal() {
+  /* จำค่าที่ลูกค้าพิมพ์ไว้ + ตำแหน่งเลื่อน เพื่อไม่ให้หายตอนกดเพิ่ม/ลดจำนวนหรือท็อปปิ้ง */
+  const keep = {};
+  ["fldHouseNo", "fldSoi", "fldNote"].forEach(id => { const el = document.getElementById(id); if (el) keep[id] = el.value; });
+  const scrollTop = document.getElementById("modalBody").scrollTop;
+  renderModalInner();
+  Object.keys(keep).forEach(id => { const el = document.getElementById(id); if (el) el.value = keep[id]; });
+  document.getElementById("modalBody").scrollTop = scrollTop;
+}
+
+function renderModalInner() {
   const count = totalCount();
   const total = cartGrandTotal();
   const sub = document.getElementById("modalHeadSub");
@@ -329,22 +370,41 @@ function renderModal() {
     return;
   }
 
-  const itemsHTML = `<div class="cart-items-section">${cart.map((c, i) => `
+  const itemsHTML = `<div class="cart-items-section">${cart.map((c, i) => {
+    const tText = toppingsText(c);
+    const tBtn = c.side ? "" : `<button type="button" class="tp-toggle ${c.tpOpen ? "open" : ""}" onclick="toppingToggle(${i})">${c.tpOpen ? "▲ ซ่อนท็อปปิ้ง" : "➕ เพิ่มท็อปปิ้ง"}</button>`;
+    const tPanel = (!c.side && c.tpOpen) ? `<div class="tp-panel">${TOPPINGS.map(t => {
+      const n = (c.toppings && c.toppings[t.id]) || 0;
+      return `<div class="tp-row ${n > 0 ? "on" : ""}">
+        <img class="tp-img" src="${t.img}" alt="${t.name}">
+        <div class="tp-name">${t.name}<span class="tp-price">+฿${t.price}</span></div>
+        <div class="tp-ctrl">
+          <button type="button" class="ci-qbtn" onclick="toppingChg(${i},'${t.id}',-1)" ${n === 0 ? "disabled" : ""}>−</button>
+          <span class="ci-qnum">${n}</span>
+          <button type="button" class="ci-qbtn" onclick="toppingChg(${i},'${t.id}',1)">+</button>
+        </div>
+      </div>`;
+    }).join("")}</div>` : "";
+    return `
     <div class="cart-item">
       <img class="ci-img" src="${c.img}" alt="${c.name}">
       <div class="ci-info">
         <div class="ci-name">${c.name}</div>
+        ${tText ? `<div class="ci-topping-sum">${tText}</div>` : ""}
         <div class="ci-controls">
           <button class="ci-qbtn" onclick="cartChg(${i},-1)">−</button>
           <span class="ci-qnum">${c.qty}</span>
           <button class="ci-qbtn" onclick="cartChg(${i},1)">+</button>
         </div>
+        ${tBtn}
       </div>
       <div class="ci-right">
         <div class="ci-price">฿${itemTotal(c)}</div>
         <button class="ci-del" onclick="cartDel(${i})" title="ลบ">🗑</button>
       </div>
-    </div>`).join("")}</div>`;
+      ${tPanel}
+    </div>`;
+  }).join("")}</div>`;
 
   const summaryHTML = `
   <div class="section-divider"><span>สรุปยอด</span></div>
@@ -469,7 +529,7 @@ async function sendToLine() {
     date,
     time,
     address: addrLine,
-    items: cart.map(c => ({ name: c.name, qty: c.qty, price: itemTotal(c) })),
+    items: cart.map(c => ({ name: cartItemLabel(c), qty: c.qty, price: itemTotal(c) })),
     sauce: globalSpice,
     veg: globalVeg,
     note,
