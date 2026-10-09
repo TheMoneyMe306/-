@@ -64,6 +64,7 @@ function buildFeatureCard(m) {
           <button class="qty-btn" onclick="chgQty('qty_${esc(m.id)}',1)">+</button>
         </div>
       </div>
+      ${toppingDropdownHTML(m)}
       <button class="btn-add" id="btn_${esc(m.id)}" onclick="addToCart('${esc(m.id)}')">+ เพิ่มลงตะกร้า</button>`
     : `<button class="btn-add" id="btn_${esc(m.id)}" disabled>หมดชั่วคราว</button>`;
   return `<div class="feature-card ${m.available ? "" : "soldout"}">
@@ -95,6 +96,7 @@ function buildCard(m) {
           <button class="qty-btn" onclick="chgQty('qty_${esc(m.id)}',1)">+</button>
         </div>
       </div>
+      ${toppingDropdownHTML(m)}
       <button class="btn-add" id="btn_${esc(m.id)}" onclick="addToCart('${esc(m.id)}')">+ เพิ่มลงตะกร้า</button>`
     : `<button class="btn-add" id="btn_${esc(m.id)}" disabled style="margin-top:10px;">หมดชั่วคราว</button>`;
   return `<div class="card ${m.available ? "" : "soldout"}">
@@ -205,8 +207,9 @@ const TOPPINGS = [
   { id: "muk",      name: "ปลาหมึก",  price: 10, img: "topping-muk.jpg" },
   { id: "khai-dao", name: "ไข่ดาว",   price: 10, img: "topping-khai-dao.jpg" },
   { id: "khai-jiao",name: "ไข่เจียว", price: 10, img: "topping-khai-jiao.jpg" },
+  { id: "khai-tom", name: "ไข่ต้ม",   price: 10, img: "topping-khai-tom.jpg" },
 ];
-const TOPPING_MAX = 9;
+const TOPPING_MAX = 99;
 
 function toppingsTotal(c) {
   return TOPPINGS.reduce((s, t) => s + t.price * ((c.toppings && c.toppings[t.id]) || 0), 0);
@@ -229,6 +232,40 @@ function toppingChg(i, tid, d) {
 }
 function toppingToggle(i) { cart[i].tpOpen = !cart[i].tpOpen; renderModal(); }
 
+/* ── ท็อปปิ้งแบบ dropdown บนการ์ดเมนู (เมนูกับข้าว side:true ไม่มีท็อปปิ้ง) ── */
+function toppingDropdownHTML(m) {
+  if (m.side) return "";
+  const id = esc(m.id);
+  const rows = TOPPINGS.map(t => `<label class="tp-drop-row">
+      <input type="checkbox" value="${t.id}" onchange="cardTpChange('${id}')">
+      <img src="${t.img}" alt="${t.name}" loading="lazy">
+      <span class="tp-drop-name">${t.name}</span>
+      <span class="tp-drop-price">+฿${t.price}</span>
+    </label>`).join("");
+  return `<details class="tp-drop" id="tpd_${id}">
+    <summary>➕ เพิ่มท็อปปิ้ง <span class="tp-drop-sum" id="tps_${id}"></span></summary>
+    <div class="tp-drop-list">${rows}</div>
+  </details>`;
+}
+function cardToppingIds(id) {
+  const box = document.getElementById("tpd_" + id);
+  if (!box) return [];
+  return Array.from(box.querySelectorAll("input:checked")).map(i => i.value);
+}
+function cardTpChange(id) {
+  const ids = cardToppingIds(id);
+  const extra = ids.reduce((s, tid) => s + TOPPINGS.find(t => t.id === tid).price, 0);
+  const el = document.getElementById("tps_" + id);
+  if (el) el.textContent = ids.length ? "(" + ids.length + " อย่าง +฿" + extra + ")" : "";
+}
+function cardTpReset(id) {
+  const box = document.getElementById("tpd_" + id);
+  if (!box) return;
+  box.querySelectorAll("input:checked").forEach(i => { i.checked = false; });
+  box.open = false;
+  cardTpChange(id);
+}
+
 /* ── Quantity controls ── */
 function chgQty(id, d) {
   const el = document.getElementById(id);
@@ -245,12 +282,17 @@ function addToCart(id) {
   const m = MENUS.find(x => x.id === id);
   if (!m || !m.available) { showToast("⚠️ เมนูนี้หมดแล้วครับ"); return; }
   const qty = parseInt(document.getElementById("qty_" + id).textContent);
-  const ex = cart.find(c => c.id === id);
+  const picked = m.side ? [] : cardToppingIds(id);
+  let ex = cart.find(c => c.id === id);
   if (ex) { ex.qty += qty; }
-  else { cart.push({ id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผัก", qty, img: m.img, side: !!m.side, toppings: {}, tpOpen: false }); }
+  else { ex = { id, name: m.name, price: m.price, spice: "เผ็ดปกติ", veg: "🥬 ใส่ผัก", qty, img: m.img, side: !!m.side, toppings: {}, tpOpen: false }; cart.push(ex); }
+  ex.toppings = ex.toppings || {};
+  picked.forEach(tid => { ex.toppings[tid] = Math.min(TOPPING_MAX, (ex.toppings[tid] || 0) + qty); });
   updateCartBar();
   flashBtn(id);
-  showToast("✅ เพิ่ม " + m.name + " x" + qty + " แล้ว!");
+  cardTpReset(id);
+  const tpNames = picked.map(tid => TOPPINGS.find(t => t.id === tid).name);
+  showToast("✅ เพิ่ม " + m.name + " x" + qty + (tpNames.length ? " + " + tpNames.join(", ") : "") + " แล้ว!");
 }
 
 

@@ -250,3 +250,21 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
 .tp-price{display:block;font-size:11px;color:var(--gold);font-weight:700;}
 .tp-ctrl{display:flex;align-items:center;gap:8px;}
 .ci-qbtn:disabled{opacity:0.35;cursor:default;}
+
+/* ── ท็อปปิ้ง dropdown บนการ์ดเมนู ── */
+.tp-drop{margin:0 0 10px;border:1px solid var(--border);border-radius:10px;background:rgba(232,172,62,0.05);overflow:hidden;}
+.tp-drop summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:12px;font-weight:700;color:var(--turmeric);display:flex;align-items:center;justify-content:space-between;gap:6px;user-select:none;}
+.tp-drop summary::-webkit-details-marker{display:none;}
+.tp-drop summary::after{content:"▾";font-size:12px;transition:transform 0.2s;}
+.tp-drop[open] summary::after{transform:rotate(180deg);}
+.tp-drop[open] summary{border-bottom:1px solid var(--border);}
+.tp-drop-sum{flex:1;font-size:10px;color:var(--gold);font-weight:700;text-align:right;}
+.tp-drop-list{display:flex;flex-direction:column;}
+.tp-drop-row{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:1px solid rgba(74,53,32,0.5);font-size:12px;}
+.tp-drop-row:last-child{border-bottom:none;}
+.tp-drop-row:hover{background:rgba(232,172,62,0.08);}
+.tp-drop-row input{accent-color:var(--turmeric);width:15px;height:15px;flex-shrink:0;}
+.tp-drop-row img{width:28px;height:28px;border-radius:6px;object-fit:cover;background:#fff;flex-shrink:0;}
+.tp-drop-name{flex:1;font-weight:600;}
+.tp-drop-price{color:var(--gold);font-weight:800;white-space:nowrap;}
+.feature-body .tp-drop{margin-top:0;}
