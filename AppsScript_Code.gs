@@ -108,10 +108,11 @@ function handleOrder(data) {
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow(['เวลาที่บันทึก', 'เลขออเดอร์', 'วันที่', 'เวลา', 'ที่อยู่จัดส่ง', 'รายการสินค้า', 'ความเผ็ด', 'ผัก', 'หมายเหตุ', 'ยอดรวม (บาท)']);
+    sheet.appendRow(['เวลาที่บันทึก', 'เลขออเดอร์', 'วันที่', 'เวลา', 'ที่อยู่จัดส่ง', 'รายการสินค้า', 'ความเผ็ด', 'ผัก', 'หมายเหตุ', 'ยอดรวม (บาท)', 'วิธีชำระเงิน']);
   }
 
   ensureNoteColumn(sheet);
+  ensurePaymentColumn(sheet);
 
   const itemsText = data.items.map(function (it) {
     return it.name + ' x' + it.qty + ' (฿' + it.price + ')';
@@ -127,7 +128,8 @@ function handleOrder(data) {
     data.sauce,
     data.veg,
     data.note || '',
-    data.total
+    data.total,
+    data.payment || ''
   ]);
 
   const lines = [];
@@ -145,6 +147,7 @@ function handleOrder(data) {
   if (data.note) {
     lines.push('📝 หมายเหตุ: ' + data.note);
   }
+  lines.push('💳 ชำระเงิน: ' + (data.payment || '-'));
   lines.push('💰 ยอดรวม: ฿' + data.total);
 
   pushLine(lines.join('\n'));
@@ -164,6 +167,15 @@ function ensureNoteColumn(sheet) {
   } else {
     sheet.getRange(1, lastCol + 1).setValue('หมายเหตุ');
   }
+}
+
+/* ── เพิ่มคอลัมน์ "วิธีชำระเงิน" ต่อท้ายสุด ถ้าชีตเดิมยังไม่มี ── */
+function ensurePaymentColumn(sheet) {
+  const lastCol = sheet.getLastColumn();
+  if (lastCol === 0) return;
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  if (headers.indexOf('วิธีชำระเงิน') !== -1) return;
+  sheet.getRange(1, lastCol + 1).setValue('วิธีชำระเงิน');
 }
 
 function testAuth() {
