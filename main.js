@@ -28,6 +28,7 @@ const MENU_CACHE_KEY = "mp_menu_cache_v1";
 let cart = [];
 let globalSpice = "เผ็ดปกติ";
 let globalVeg = "🥬 ใส่ผัก";
+let globalPay = "promptpay";   // "promptpay" = โอนพร้อมเพย์ | "cash" = เงินสด
 
 /* ── ลิงก์เพิ่มเพื่อน LINE OA — ใส่ลิงก์ของร้านครัวแม่ปุ้งตรงนี้ ── */
 const LINE_OA_LINK = "https://line.me/R/ti/p/@939cbtmd";
@@ -331,7 +332,7 @@ function closeCart() {
   if (isOrderSuccess) {
     isOrderSuccess = false;
     const btnLine = document.getElementById("btnLine");
-    cart = []; globalSpice = "เผ็ดปกติ"; globalVeg = "🥬 ใส่ผัก";
+    cart = []; globalSpice = "เผ็ดปกติ"; globalVeg = "🥬 ใส่ผัก"; globalPay = "promptpay";
     btnLine.disabled = false;
     btnLine.innerHTML = `<span>💬</span><span>สั่งผ่าน LINE ทันที!<span class="btn-line-sub">กดเพื่อส่งออเดอร์ไปหาร้าน</span></span>`;
     btnLine.style.display = "";
@@ -348,12 +349,47 @@ const PROMPTPAY_NAME = "น.ส.พิจิตรา แก้วคำแส�
 const PROMPTPAY_DISPLAY = "082-108-8428";
 const PROMPTPAY_QR_IMG = "promptpay-qr.jpg";
 
-function paymentHTML(total) {
+const PAY_LABELS = { promptpay: "💳 โอนพร้อมเพย์", cash: "💵 เงินสด" };
+
+function setPay(v) { globalPay = v; renderModal(); }
+
+/* ตัวเลือกวิธีชำระเงิน (ใช้ตอนเลือกในตะกร้า) */
+function payChoiceHTML() {
+  return `<div class="pay-choice">
+    <label class="pay-opt"><input type="radio" name="gpay" value="promptpay" ${globalPay === "promptpay" ? "checked" : ""} onchange="setPay(this.value)"><span>💳 โอนพร้อมเพย์</span></label>
+    <label class="pay-opt"><input type="radio" name="gpay" value="cash" ${globalPay === "cash" ? "checked" : ""} onchange="setPay(this.value)"><span>💵 เงินสด</span></label>
+  </div>`;
+}
+
+/* กล่องแสดงรายละเอียดเมื่อเลือกเงินสด */
+function cashHTML(total) {
+  return `<div class="pay-cash">
+      <div class="pay-cash-icon">💵</div>
+      <div class="pay-amount">ยอดที่ต้องชำระ <b>฿${total}</b></div>
+      <div class="pay-note">ชำระเป็นเงินสดกับผู้ส่งเมื่อได้รับอาหารครับ<br>รบกวนเตรียมเงินสดให้พอดีกับยอด เพื่อความสะดวกในการจัดส่ง 🙏</div>
+    </div>`;
+}
+
+/* selectable=true → ในตะกร้า (มีตัวเลือกให้กด) | false → หน้าสำเร็จ (แสดงตามที่เลือกไว้) */
+function paymentHTML(total, selectable) {
+  if (selectable === undefined) selectable = true;
+  const isCash = globalPay === "cash";
+  const header = selectable ? "💳 เลือกวิธีชำระเงิน" : (isCash ? "💵 ชำระเงินสด" : "💳 โอนผ่านพร้อมเพย์ (PromptPay)");
+  const choice = selectable ? payChoiceHTML() : "";
+  if (isCash) {
+    return `
+  <div class="section-divider"><span>ช่องทางการชำระเงิน</span></div>
+  <div class="delivery-section pay-section">
+    <div class="ds-header">${header}</div>
+    <div class="ds-body pay-body">${choice}${cashHTML(total)}</div>
+  </div>`;
+  }
   return `
   <div class="section-divider"><span>ช่องทางการชำระเงิน</span></div>
   <div class="delivery-section pay-section">
-    <div class="ds-header">💳 โอนผ่านพร้อมเพย์ (PromptPay)</div>
+    <div class="ds-header">${header}</div>
     <div class="ds-body pay-body">
+      ${choice}
       <img class="pay-qr-img" src="${PROMPTPAY_QR_IMG}" alt="QR พร้อมเพย์ ${PROMPTPAY_NAME}">
       <div class="pay-amount">ยอดที่ต้องโอน <b>฿${total}</b></div>
       <div class="pay-info">
@@ -574,6 +610,7 @@ async function sendToLine() {
     items: cart.map(c => ({ name: cartItemLabel(c), qty: c.qty, price: itemTotal(c) })),
     sauce: globalSpice,
     veg: globalVeg,
+    payment: PAY_LABELS[globalPay] || globalPay,
     note,
     total,
     count
@@ -637,7 +674,7 @@ function showSuccess(order) {
     <div class="os-total-row">
       <div>
         <div class="os-total-label">ยอดรวมทั้งหมด</div>
-        <div class="os-total-note">🌶️ ${order.sauce} • ${order.veg}</div>
+        <div class="os-total-note">🌶️ ${order.sauce} • ${order.veg}<br>${order.payment}</div>
       </div>
       <div class="os-total-amount">฿${order.total}</div>
     </div>
@@ -649,7 +686,7 @@ function showSuccess(order) {
     ${order.note ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;">📝 ${order.note}</div>` : ""}
   </div>
 
-  ${paymentHTML(order.total)}
+  ${paymentHTML(order.total, false)}
 
   <div class="success-screen" style="padding-top:20px;padding-bottom:8px;min-height:auto;">
     <div class="success-countdown">กดปุ่ม ✕ ด้านบนเพื่อปิดหน้าต่างนี้ได้เลยครับ</div>
