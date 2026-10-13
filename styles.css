@@ -268,3 +268,12 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellips
 .tp-drop-name{flex:1;font-weight:600;}
 .tp-drop-price{color:var(--gold);font-weight:800;white-space:nowrap;}
 .feature-body .tp-drop{margin-top:0;}
+
+/* ── เลือกวิธีชำระเงิน (พร้อมเพย์ / เงินสด) ── */
+.pay-choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+.pay-opt{display:block;cursor:pointer;}
+.pay-opt input{display:none;}
+.pay-opt span{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:12px;border:1.5px solid var(--modal-border);background:var(--input-bg);color:var(--muted);font-size:13px;font-weight:700;text-align:center;transition:all 0.15s;user-select:none;}
+.pay-opt input:checked + span{border-color:var(--turmeric);color:var(--turmeric);background:rgba(232,172,62,0.10);}
+.pay-cash{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 8px 6px;}
+.pay-cash-icon{width:72px;height:72px;border-radius:50%;background:rgba(111,156,68,0.14);border:1px solid rgba(111,156,68,0.28);display:flex;align-items:center;justify-content:center;font-size:34px;}
